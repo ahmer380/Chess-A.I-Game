@@ -1,0 +1,156 @@
+SUBROUTINE
+get_material_score(piece_object)
+   return piece_object.value
+ENDSUBROUTINE
+
+SUBROUTINE 
+get_centre_control_score(piece_object)
+   central_squares ← [(3,3),(3,4),(4,3),(4,4)]
+
+   piece_in_centre_bonus ← 3 #can be tweaked for optimisation
+   pawn_controlling_centre_bonus ← 2
+   non_pawn_controlling_centre_bonus ← 1
+
+   piece_pos ← piece_object.position
+
+   IF piece_object.colour = white
+      multiplier ← 1
+   ELSE #black piece
+      multiplier ← -1
+   ENDIF
+
+   #check if piece is already in the centre
+   IF piece_pos IN central_squares
+      return piece_in_centre_bonus * multiplier
+   ENDIF
+
+   #check if piece is controlling a central square (if not already in one)
+   watched_squares ← piece.object.calculate_moves()
+   FOR square IN watched_squares
+      IF square IN central_squares 
+         IF piece_object = pawn 
+            return pawn_controlling_centre_bonus * multiplier
+         ELSE
+            return non_pawn_controlling_centre_bonus * multiplier
+         ENDIF
+      ENDIF
+   ENDFOR
+ 
+   return 0 #piece not controlling centre/inside centre
+ENDSUBROUTINE
+
+SUBROUTINE
+get_pawn_structure_score(board,piece_object)
+   IF piece_object ≠ pawn THEN
+      return 0 #no need to be evaluated if piece is not a pawn
+   ENDIF
+
+   IF piece_object.colour = white
+      colour_multiplier ← 1
+   ELSE #black piece
+      colour_multiplier ← -1
+   ENDIF
+
+   pawn_structure_score ← 0 #values subject to change for optimisation
+   pawn_island_penalty ← -2
+   double_pawn_penalty ← -5 #each pawn on same row e.g. 3 pawns on same row = -10
+   pawn_island ← true #we assume the pawn is isolated at first
+   piece_row_pos,piece_col_pos ← piece_object.position
+   surrounding_squares ← [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
+
+   #checking if the pawn is isolated
+   FOR square IN surrounding_squares
+      new_row,new_col ← piece_row_pos + square[0],piece_col_pos + square[1]
+      IF (0 <= new_row + square[0] <= 7) AND (0 <= new_col + square[1] <= 7) THEN
+         IF (board[new_row][new_col] = pawn) AND (board[new_row][new_col].colour = piece_object.colour) THEN
+            pawn_island ← false
+            break #no need to look at other squares as we know the pawn is connected to an ally pawn
+         ENDIF
+      ENDIF
+   ENDFOR
+
+   IF pawn_island = true
+      pawn_structure_score += pawn_island_penalty
+   ENDIF
+
+   #checking for doubled/tripled pawns
+   WHILE piece_row < 7
+      IF (board[piece_row+1][piece_col] = pawn) AND (board[piece_row+1][piece_col].colour = piece_object.colour) THEN
+         pawn_structure_score += double_pawn_penalty
+      ENDIF
+      piece_row += 1
+   ENDWHILE
+   
+   return pawn_structure_score * multiplier
+ENDSUBROUTINE
+
+SUBROUTINE
+get_king_safety_score(board,white_king_object,black_king_object)
+   king_safety_score ← 0
+   castling_bonus ← 5 #values subject to change for optimisation
+   pawn_shield_bonus ← 3 #per pawn
+   white_king_row_pos,white_king_col_pos ← white_king_object.position
+   black_king_row_pos,black_king_col_pos ← black_king_object.position
+
+   #check if kings have castled 
+   IF white_king_object.castled = true THEN
+      king_safety_score += castling_bonus
+   IF black_king_object.castled = true THEN
+      king_safety_score -= castling_bonus
+   ENDIF
+
+   #check the presence of the pawn shield
+   col_vectors ← [-1,0,1]
+   white_king_row_pos -= 1 #this variable now stores the row in which the white pawn shield should be at 
+   black_king_row_pos += 1 #this variable now stores the row in which the black pawn shield should be at
+
+   FOR col_vector IN col_vectors
+      white_king_new_col,black_king_new_col ← white_king_col_pos + col_vector,black_king_col_pos + col_vector
+ 
+      IF (0 <= white_king_row_pos <= 7) AND (0 <= white_king_new_col <= 7) THEN
+         IF board[white_king_row_pos][white_king_new_col] = 'wp'THEN
+            king_safety_score += pawn_shield_bonus
+         ENDIF
+      IF (0 <= black_king_row_pos <= 7) AND (0 <= black_king_new_col <= 7) THEN
+         IF board[black_king_row_pos][black_king_new_col] = 'bp' THEN
+            king_safety_score -= pawn_shield_bonus
+         ENDIF
+      ENDIF
+   ENDFOR
+   
+   return king_safety_score
+ENDSUBROUTINE
+
+SUBROUTINE
+calculate_total_score(material_score,centre_control_score,pawn_Structure_score,king_safety_score)
+   multipliers ← {'opening':[1,0.5,0.1,0.15],'middlegame':[1,0.2,0.3,0.5],'endgame':[1,0,0.6,0]}
+   gamephase ← gamedata.gamephase
+
+   material_multiplier,centre_control_multiplier,pawn_structure_multiplier,king_safety_multiplier ← multipliers[gamephase]
+   material_score *= material_multiplier
+   centre_control_score *= centre_control_multiplier
+   pawn_structure_score *= pawn_structure_multiplier
+   king_safety_score *= king_safety_multiplier
+
+   total_score ← material_score + centre_control_score + pawn_structure_score + king_safety_score
+   return total_score
+ENDSUBROUTINE
+
+   
+      
+      
+   
+
+
+
+   
+
+
+
+
+
+
+
+
+
+         

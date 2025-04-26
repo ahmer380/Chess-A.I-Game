@@ -1,0 +1,54 @@
+#the gamedata and move_engine object is referenced frequently within the minimax subroutine
+
+SUBROUTINE
+minimax(board,is_maximising,depth)
+   MAX_SCORE ← INFINITY
+   MIN_SCORE ← -INFINITY
+   
+   IF gamedata.checkmate ← TRUE THEN
+      IF gamedata.winner ← 'AI' THEN #AI has checkmated Player
+         return MAX_SCORE
+      ELSE #Player has checkmated AI
+         return MIN_SCORE
+      ENDIF
+   ELSE IF gamedata.stalemate ← TRUE THEN #draw
+      return 0
+   ELSE IF depth ← 0 THEN #depth limit reached
+      return evaluation_function(board)
+   ENDIF
+
+   IF is_maximising ← TRUE THEN #AI is trying to maximise score
+      best_move_score ← MIN_SCORE #we start with the worst possible score for the AI
+      FOR available_move IN gamedata.available_moves
+         move_engine.make_move(available_move) #edits everything - say more on outisde :)
+         score = minimax(board,False,depth-1)
+         IF score > best_move_score THEN
+            best_move_score ← score
+         ENDIF
+         move_engine.undo_move() #edits everything - say more on outisde :)
+      ENDFOR
+
+   ELSE IF is_maximising ← FALSE THEN #Player is trying to minimise score
+      best_move_score ← MAX_SCORE #we start with the worst possible score for the Player
+      FOR available_move IN gamedata.avaailable_moves
+         move_engine.make_move(available_move) #edits everything - say more on outisde :)
+         score = minimax(board,True,depth-1)
+         IF score < best_move_score THEN 
+            best_move_score ← score
+         ENDIF
+         move_engine.undo_move()
+      ENDFOR
+   ENDIF
+
+   return best_move_score
+ENDSUBROUTINE
+
+SUBROUTINE
+minimax(board,is_maximising,depth,alpha,beta)
+   #some code below...
+
+alpha ← max(alpha,best_move_score)
+            if beta <= alpha:
+                break
+
+      
