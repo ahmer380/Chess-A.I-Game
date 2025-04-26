@@ -1,4 +1,4 @@
-# Tic Tac Toe w/ AI: Archived from April 2022
+# Chess A.I Game: Archived from April 2022
 
 ## Retrospective review notes taken from [my personal website](https://ahmeralam.co.uk/) (2024)
 *The Chess A.I. Game is the culmination of over a year's worth of dedicated work as part of my Computer Science A-Level NEA project, which resulted in a comprehensive 150+ page [report](https://drive.google.com/file/d/17C3nrvk6m3p4Jrx3cKbooR_ug3HOl6Kj/view). This project involved building a one-player chess application using Python and Pygame, tailored to meet specific client requirements. The goal was to create an engaging and challenging chess experience that includes a sophisticated opponent A.I capable of providing a robust gameplay experience for users.*
